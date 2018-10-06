@@ -1,0 +1,10 @@
+LOG: "2018-10-06 14:58:25.281894" :Running job "schedCurrentWeek" 
+LOG: "2018-10-06 14:58:25.282892" :Job "schedCurrentWeek" completed 
+LOG: "2018-10-06 14:58:35.292336" :Running job "getCameraData" 
+LOG: "2018-10-06 14:58:35.293336" :Job "getCameraData" completed 
+LOG: "2018-10-06 14:58:45.303754" :Running job "getCameraData" 
+LOG: "2018-10-06 14:58:45.304644" :Job "getCameraData" completed 
+LOG: "2018-10-06 14:58:55.314176" :Running job "getCameraData" 
+LOG: "2018-10-06 14:58:55.315139" :Job "getCameraData" completed 
+LOG: "2018-10-06 14:59:05.324404" :Running job "getCameraData" 
+LOG: "2018-10-06 14:59:05.325404" :Job "getCameraData" completed 

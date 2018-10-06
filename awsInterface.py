@@ -1,5 +1,4 @@
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
-from configparser import SafeConfigParser
+from lib import *
 
 class IoT():
 
@@ -28,8 +27,8 @@ class IoT():
 		else:
 			print("Not Connected")
 
-	def receivedata(self,func):
-		self.myAWSIoTMQTTClient.subscribe(IoT.topic,1,func)
+	def receiveData(self,topic,func):
+		self.myAWSIoTMQTTClient.subscribe(topic,1,func)
 
-	def senddata(self,data):
+	def sendData(self,data):
 		self.myAWSIoTMQTTClient.publish(IoT.topic, data, 1)

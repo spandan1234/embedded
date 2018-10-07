@@ -35,10 +35,10 @@
 ### startGrowCycle()
 * Get current week
 * while current day is before estimated harvest day
-	*schedule current week
-	*while current week is same as getCurrentWeek
-		*Run pending tasks of that week
-	*update current week 
+ *schedule current week
+ *while current week is same as getCurrentWeek
+  *Run pending tasks of that week
+ *update current week 
 ### schedCurrentWeek()
 * Get the actuator control information of the week
 * Set the Critical sensor values 

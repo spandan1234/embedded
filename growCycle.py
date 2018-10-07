@@ -18,21 +18,21 @@ class GrowCycle():
 		self.pumpOnInterval=None
 		self.collectDataInterval=2
 		self.collectImageInterval=2
-		# self.IoT = IoT()
-		# self.Accuator = AccuatorControl()
-		# self.Sensor = SensorControl()
+		self.AWS = AWSInterface()
+		self.Accuator = AccuatorControl()
+		self.Sensor = SensorData()
 		
+	@logging
+	def startGrowCycle():
+		currentWeek = self.getCurrentWeek()
+		self.schedCurrentWeek(currentWeek)
 
-	def strtoDate(date):
-		date = [int(x) for x in date.split('-')]
-		result = datetime.date(date[0],date[1],date[2])
-		return result
-
-	def getCurrentWeek(self):
-		startdate = self.growStartDate
-		dayCount = datetime.date.today()-startdate
-		currentWeek = dayCount.days//7
-		return currentWeek
+		while(datetime.date.today()<=self.estimatedHarvest):
+			while(self.getCurrentWeek()==currentWeek):
+				schedule.run_pending()
+				time.sleep(1)
+			currentWeek = self.getCurrentWeek()
+			self.schedCurrentWeek(currentWeek)	
 
 	@logging
 	def schedCurrentWeek(self,currentWeek):
@@ -62,17 +62,23 @@ class GrowCycle():
 
 		schedule.clear()
 		
-		# if self.ledOnDuration!=0:
-		# 	schedule.every(self.ledOnInterval).day.do(self.lightOn)
+		if self.ledOnDuration!=0:
+			schedule.every(self.ledOnInterval).day.do(self.lightOn)
 
-		# if self.fanOnDuration!=0:
-		# 	schedule.every(self.fanOnInterval).hour.do(self.fanOn)
+		if self.fanOnDuration!=0:
+			schedule.every(self.fanOnInterval).hour.do(self.fanOn)
 
-		# if self.pumpOnDuration!=0:
-		# 	schedule.every(self.pumpOnInterval).hour.do(self.pumpOn)
+		if self.pumpOnDuration!=0:
+			schedule.every(self.pumpOnInterval).hour.do(self.pumpOn)
 
 		schedule.every(self.collectCameraInterval).seconds.do(self.getCameraData)
 		schedule.every(self.collectDataInterval).minutes.do(self.getSensorData)
+
+	def getCurrentWeek(self):
+		startdate = self.growStartDate
+		dayCount = datetime.date.today()-startdate
+		currentWeek = dayCount.days//7
+		return currentWeek
 
 	@logging
 	def lightOn(self):
@@ -116,7 +122,7 @@ class GrowCycle():
 
 	@logging
 	def sendDataToIoT(self,data):
-		IoT.sendData(data)
+		AWS.sendData(data)
 
 	@logging
 	def getCameraData(self):
@@ -124,9 +130,13 @@ class GrowCycle():
 
 	@logging
 	def sendCameraToIoT(self):
-		IoT.sendCameraData()
+		AWS.sendCameraData()
 
-	
+	def strtoDate(date):
+		date = [int(x) for x in date.split('-')]
+		result = datetime.date(date[0],date[1],date[2])
+		return result
+
 
 
 

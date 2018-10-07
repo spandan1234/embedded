@@ -25,14 +25,13 @@ class GrowCycle():
 	@logging
 	def startGrowCycle():
 		currentWeek = self.getCurrentWeek()
-		self.schedCurrentWeek(currentWeek)
-
+		
 		while(datetime.date.today()<=self.estimatedHarvest):
+			self.schedCurrentWeek(currentWeek)
 			while(self.getCurrentWeek()==currentWeek):
 				schedule.run_pending()
 				time.sleep(1)
 			currentWeek = self.getCurrentWeek()
-			self.schedCurrentWeek(currentWeek)	
 
 	@logging
 	def schedCurrentWeek(self,currentWeek):

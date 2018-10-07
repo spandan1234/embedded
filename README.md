@@ -32,14 +32,19 @@
 ### init()
 * Get plant info from plant.conf file
 * Get startDate and Estimated endDate
-### strToDate()
-* Convert string to date format
-### getCurrentWeek()
-* Get the current week of the cycle
+### startGrowCycle()
+* Get current week
+* while current day is before estimated harvest day
+	*schedule current week
+	*while current week is same as getCurrentWeek
+		*Run pending tasks of that week
+	*update current week 
 ### schedCurrentWeek()
 * Get the actuator control information of the week
 * Set the Critical sensor values 
 * Schedule the lightOn, fanOn, pumpOn, getSensorData and getCameraData tasks
+### getCurrentWeek()
+* Get the current week of the cycle
 ### lightOn()
 * Turn ON the light and schedule the lightOff task depending on the grow info
 ### lightOff()
@@ -62,6 +67,8 @@
 * get the current image
 ### sendCameraToAWS()
 * send Image to AWS S3
+### strToDate()
+* Convert string to date format
 ## plant.conf
 * It contain plant info
 * upper and lower limit of sensor values

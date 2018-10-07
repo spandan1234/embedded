@@ -62,5 +62,14 @@
 * get the current image
 ### sendCameraToAWS()
 * send Image to AWS S3
+## plant.conf
+* It contain plant info
+* upper and lower limit of sensor values
+* actuator control info
+## device.conf
+* contain device info
+* wifi info
+* aws info
+
 
 

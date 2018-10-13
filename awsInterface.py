@@ -8,6 +8,7 @@ class AWSInterface():
 		self.host = parser.get('device','host')
 		self.port = int(parser.get('device','port'))
 		self.clientId = parser.get('device','clientId')
+		self.userId = parser.get('device','userId')
 		self.topic = parser.get('device','topic')
 		self.rootCAPath = parser.get('device','rootCAPath')
 		self.privateKeyPath = parser.get('device','privateKeyPath')
@@ -44,6 +45,7 @@ class AWSInterface():
 	def makePacket(self,data):
 		packet = {}
 		packet['device_id'] = self.clientId
+		packet['user_id'] = self.userId
 		packet['time_stamp'] = str(datetime.datetime.now())
 		packet['sensor_data'] = data['sensor']
 		packet['grow_id'] = self.growId

@@ -53,11 +53,11 @@ class GrowCycle():
 		'''turn off all actuators
 			cancel all scheduled jobs
 			send current stauts report to aws'''
-			self.startGrow = False
-			accuator.turnLigthOff()
-			accuator.turnFanOff()
-			accuator.turnPumpOff()
-			schedule.clear()
+		self.startGrow = False
+		accuator.turnLigthOff()
+		accuator.turnFanOff()
+		accuator.turnPumpOff()
+		schedule.clear()
 
 
 	@logging

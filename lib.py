@@ -2,6 +2,7 @@ from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 from configparser import SafeConfigParser
 #import RPi.GPIO as GPIO
 import time
+import random
 import schedule
 import glob
 import datetime

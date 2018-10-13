@@ -8,6 +8,7 @@ class GrowCycle():
 			sensor critical limits and start end date of grow'''
 		parser = SafeConfigParser()
 		parser.read('plant.Conf')
+		self.startGrow = True
 		self.growStartDate = parser.get('PlantInfo','plantingDate')
 		self.estimatedHarvest = parser.get('PlantInfo','estimatedHarvest')
 		self.growStartDate = strtoDate(self.growStartDate)
@@ -40,12 +41,24 @@ class GrowCycle():
 			loop schedule current week till day reachs the estimated harvest date'''
 		currentWeek = self.getCurrentWeek()
 		
-		while(datetime.date.today()<=self.estimatedHarvest):
+		while(datetime.date.today()<=self.estimatedHarvest and self.startGrow):
 			self.schedCurrentWeek(currentWeek)
-			while(self.getCurrentWeek()==currentWeek):
+			while(self.getCurrentWeek()==currentWeek and self.startGrow):
 				schedule.run_pending()
 				time.sleep(1)
 			currentWeek = self.getCurrentWeek()
+
+	@logging
+	def endGrowCycle():
+		'''turn off all actuators
+			cancel all scheduled jobs
+			send current stauts report to aws'''
+			self.startGrow = False
+			accuator.turnLigthOff()
+			accuator.turnFanOff()
+			accuator.turnPumpOff()
+			schedule.clear()
+
 
 	@logging
 	def schedCurrentWeek(self,currentWeek):

@@ -2,6 +2,7 @@ import functools
 import datetime
 
 def logging(func):
+	'''decorator to maintain function logs'''
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
 		file = open("log.txt","a")

@@ -2,21 +2,23 @@ from lib import *
 
 class AWSInterface():
 
-	parser = SafeConfigParser()
-	parser.read('device.conf')
-	host = parser.get('device','host')
-	port = int(parser.get('device','port'))
-	clientId = parser.get('device','clientId')
-	topic = parser.get('device','topic')
-	rootCAPath = parser.get('device','rootCAPath')
-	privateKeyPath = parser.get('device','privateKeyPath')
-	certificatePath = parser.get('device','certificatePath')
-
-
 	def __init__(self):
-		self.myAWSIoTMQTTClient = AWSIoTMQTTClient(AWSInterface.clientId)
-		self.myAWSIoTMQTTClient.configureEndpoint(AWSInterface.host, AWSInterface.port)
-		self.myAWSIoTMQTTClient.configureCredentials(AWSInterface.rootCAPath, AWSInterface.privateKeyPath, AWSInterface.certificatePath)
+		parser = SafeConfigParser()
+		parser.read('device.conf')
+		self.host = parser.get('device','host')
+		self.port = int(parser.get('device','port'))
+		self.clientId = parser.get('device','clientId')
+		self.topic = parser.get('device','topic')
+		self.rootCAPath = parser.get('device','rootCAPath')
+		self.privateKeyPath = parser.get('device','privateKeyPath')
+		self.certificatePath = parser.get('device','certificatePath')
+		self.growId = parser.get('grow','growId')
+		parser.read('plant.conf')
+		self.growStartDate = parser.get('PlantInfo','plantingDate')
+		self.growStartDate = strtoDate(self.growStartDate)
+		self.myAWSIoTMQTTClient = AWSIoTMQTTClient(self.clientId)
+		self.myAWSIoTMQTTClient.configureEndpoint(self.host, self.port)
+		self.myAWSIoTMQTTClient.configureCredentials(self.rootCAPath, self.privateKeyPath, self.certificatePath)
 		self.myAWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
 		self.myAWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
 		self.myAWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
@@ -31,4 +33,25 @@ class AWSInterface():
 		self.myAWSIoTMQTTClient.subscribe(topic,1,func)
 
 	def sendData(self,data):
-		self.myAWSIoTMQTTClient.publish(AWSInterface.topic, data, 1)
+		packet = self.makePacket(data)
+		try:
+			self.myAWSIoTMQTTClient.publish(self.topic, packet, 1)
+			return True
+		except Exception as e:
+			raise(e)
+			return False
+		
+	def makePacket(self,data):
+		packet = {}
+		packet['device_id'] = self.clientId
+		packet['time_stamp'] = str(datetime.datetime.now())
+		packet['sensor_data'] = data['sensor']
+		packet['grow_id'] = self.growId
+		packet['time_from_start'] = str(datetime.date.today()-self.growStartDate)
+		packet['actuator_data'] = data['actuator']
+		iotPacket = json.dumps(packet)
+		return iotPacket
+
+	def sendCameraData(self,data):
+		response = requests.post("https://aws.savetos3_api",data=data)
+		return response

@@ -1,25 +1,36 @@
-from awsInterface import IoT
+from awsInterface import AWSInterface
 import time
+import random
 from lib import *
 
 def printdata(client, userdata, message):
 	print("received from server:")
 	print(message.payload)
 
-msg_id=0
-device = IoT()
-message = {}
-message['device_id']="001"
-message['grow_id']="marijuana"
+def randomSensor():
+	keys = ['signature', 'temperature', 'humidity', 'waterlevel', 'pH', 'turbidity', 'status', 'timestamp']
+	sensor = {}
+	for k in keys:
+		sensor[k] = random.randint(1,50)
 
+	return sensor
 
-device.receivedata("oct1_1/sensor_data",printdata)
+def randomActuator():
+	keys = ['signature', 'pump', 'fan', 'light', 'timestamp']
+	actuator = {}
+	for k in keys:
+		actuator[k] = random.randint(0,1)
+
+	return actuator
+
+device = AWSInterface()
+device.receiveData("sensor_data",printdata)
 
 while True:
-	message['msg_id']=msg_id
-	msg_id+=1
-	message['time_stamp']=str(datetime.datetime.now())
-	msgjson = json.dumps(message)
-	device.senddata(msgjson)
+	data = {}
+	data['sensor']=randomSensor()
+	data['actuator']=randomActuator()
+	device.sendData(data)
 	print("sending..")
-	time.sleep(10)
+	time.sleep(5)
+

@@ -1,15 +1,21 @@
 from lib import *
+from os import path
+import os
 
 
 class GrowCycle:
 
     def __init__(self):
         parser = ConfigParser()
-        parser.read('plant.Conf')
+        # get current working directory
+        cwd = os.getcwd()
+        # check if file is present
+        if path.isfile(cwd+"/config_files/plant.conf"):
+            parser.read('plant.Conf')
         self.growStartDate = parser.get('PlantInfo', 'plantingDate')
         self.estimatedHarvest = parser.get('PlantInfo', 'estimatedHarvest')
-        self.growStartDate = GrowCycle.strtoDate(self.growStartDate)
-        self.estimatedHarvest = GrowCycle.strtoDate(self.estimatedHarvest)
+        self.growStartDate = self.strtoDate(self.growStartDate)
+        self.estimatedHarvest = self.strtoDate(self.estimatedHarvest)
         self.ledOnDuration = None
         self.ledOnInterval = None
         self.fanOnDuration = None
@@ -20,7 +26,9 @@ class GrowCycle:
         self.collectImageInterval = 2
         self.AWS = AWSInterface()
         self.self.Actuator = self.ActuatorControl()
+        self.states = State()
         self.Sensor = SensorData()
+        self.CameraCapture = CameraCapture()
 
     def startGrowCycle(self):
         currentWeek = self.getCurrentWeek()
@@ -66,25 +74,30 @@ class GrowCycle:
                                                   'collectDataInterval'))
         self.collectDataDuration = int(parser.get('week'+str(currentWeek),
                                                   'collectDataDuration'))
-        self.collectCameraInterval = int(parser.get(
-            'week'+str(currentWeek), 'collectCameraInterval'))
-        self.collectCameraDuration = int(parser.get(
-            'week'+str(currentWeek), 'collectCameraDuration'))
+        self.collectCameraInterval = int(parser.get('week'+str(currentWeek),
+                                                    'collectCameraInterval'))
+        self.collectCameraDuration = int(parser.get('week'+str(currentWeek),
+                                                    'collectCameraDuration'))
 
         schedule.clear()
+        self.initialize_states()
 
-        if self.ledOnDuration != 0:
-            schedule.every(self.ledOnInterval).day.do(self.lightOn)
-
-        if self.fanOnDuration != 0:
-            schedule.every(self.fanOnInterval).hour.do(self.fanOn)
-
-        if self.pumpOnDuration != 0:
-            schedule.every(self.pumpOnInterval).hour.do(self.pumpOn)
-
-        schedule.every(self.collectCameraInterval).seconds\
-            .do(self.getCameraData)
-        schedule.every(self.collectDataInterval).minutes.do(self.getSensorData)
+    def initialize_states(self):
+        """
+        Initialize the global states with the plant.conf
+        :return:No return
+        """
+        self.states.tempLL = self.tempLL
+        self.states.tempUL = self.tempUL
+        self.states.humidityUL = self.humidityUL
+        self.states.humidityLL = self.humidityLL
+        self.states.phUL = self.phUL
+        self.states.phLL = self.phLL
+        self.states.ecUL = self.ecUL
+        self.states.ecLL = self.ecLL
+        self.states.waterlevelUL = self.waterlevelUL
+        self.states.waterlevelLL = self.waterlevelLL
+        return
 
     def getCurrentWeek(self):
         startdate = self.growStartDate
@@ -94,6 +107,7 @@ class GrowCycle:
 
     def lightOn(self):
         self.Actuator.turnLightOn()
+        self.states.LED_status = True
         lightOffTime = format(datetime.datetime.now() +
                               datetime.timedelta(hours=self.ledOnDuration),
                               '%H:%M:%S')
@@ -101,10 +115,12 @@ class GrowCycle:
 
     def lightOff(self):
         self.Actuator.turnLightOff()
+        self.states.LED_status = False
         return schedule.CancelJob
 
     def fanOn(self):
         self.Actuator.turnFanOn()
+        self.states.FAN_status = True
         fanOffTime = format(datetime.datetime.now() +
                             datetime.timedelta(minutes=self.fanOnDuration),
                             '%H:%M:%S')
@@ -112,10 +128,12 @@ class GrowCycle:
 
     def fanOff(self):
         self.Actuator.turnFanOff()
+        self.states.FAN_status = False
         return schedule.CancelJob
 
     def pumpOn(self):
         self.Actuator.turnPumpOn()
+        self.states.Pump_Mix_status = True
         pumpOffTime = format(datetime.datetime.now() +
                              datetime.timedelta(minutes=self.pumpOnDuration),
                              '%H:%M:%S')
@@ -123,22 +141,14 @@ class GrowCycle:
 
     def pumpOff(self):
         self.Actuator.turnPumpOff()
+        self.states.Pump_Mix_status = False
         return schedule.CancelJob
 
-    def getSensorData(self):
-        print("inside get sensor")
-        # sensorData = sensor.sensorData()
-        # checkSensorData(sensorData)
-        # self.sendDataToIoT(sensorData)
-
-    def sendDataToIoT(self, data):
+    def send_data_to_aws(self, data):
         self.AWS.sendData(data)
 
-    def getCameraData(self):
-        print("inside camera sensor data")
-
-    def sendCameraToIoT(self):
-        self.AWS.sendCameraData()
+    # def sendCameraToIoT(self):
+    #     self.AWS.sendCameraData()
 
     def strtoDate(date):
         date = [int(x) for x in date.split('-')]

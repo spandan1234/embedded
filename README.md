@@ -61,7 +61,7 @@
 * Collect the sensor data
 * Check for critial values
 * send data to AWS
-### sendDataToAWS()
+### send_data_to_aws()
 * send data to aws 
 ### getCameraData()
 * get the current image

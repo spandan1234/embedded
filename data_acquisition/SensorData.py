@@ -82,11 +82,12 @@ class SensorData:
             self.send_to_arduino(ack)
 
         # convert to json before sending
-        json_sensor_data = self.convert_to_json(filter_sensor_data)
+        # json_sensor_data = self.convert_to_json(filter_sensor_data)
 
-        return json_sensor_data
+        return filter_sensor_data
 
     # split the string data and return the dict
+    @staticmethod
     def filter_data(self, data):
         # initialize a filter_data dictionary
         filtered_data = {}
@@ -115,6 +116,7 @@ class SensorData:
         return self.serialOpen.readline()
 
     # convert any dict to json
+    @staticmethod
     def convert_to_json(self, data):
         if type(data) == dict:
             json_data = json.dumps(data)

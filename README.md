@@ -21,7 +21,7 @@
 ### init()
 * Create AWSMQTT client
 * Configure the endpoint
-* Configure Credentials 
+* Configure Credentials
 * Establish connection between device and AWS
 ### sendData()
 * send data to AWS on device topic
@@ -38,10 +38,10 @@
 	* schedule current week
 	* while current week is same as getCurrentWeek
 		* Run pending tasks of that week
-	* update current week 
+	* update current week
 ### schedCurrentWeek()
 * Get the actuator control information of the week
-* Set the Critical sensor values 
+* Set the Critical sensor values
 * Schedule the lightOn, fanOn, pumpOn, getSensorData and getCameraData tasks
 ### getCurrentWeek()
 * Get the current week of the cycle
@@ -62,7 +62,7 @@
 * Check for critial values
 * send data to AWS
 ### send_data_to_aws()
-* send data to aws 
+* send data to aws
 ### getCameraData()
 * get the current image
 ### sendCameraToAWS()
@@ -78,5 +78,47 @@
 * wifi info
 * aws info
 
+## main.py
+### init()
+* grow_cycle - access the config file and make schedules
+* sensor_data - receive data from the arduino
+* CC_queue - critical condition queue
+* Data_queue - queue containing data acquired
+* Image_queue - queue containing images acquired
+* AWS_queue - queue containing info received from AWS
+* states - to track the current states of the actuator
+* logger = logger variable to log logic
+### main_function()
+* get estimated harvest date
+* get current week
+* loop till today is not equal to estimatedHarvest
+* get current week values from plant.conf file
+* schedule actuator, data_acquisition, sendData jobs
+* execute jobs
+* check aws queue for user input
+* if any: act upon user inputs
 
+### check_user_input()
+* check the message received from AWS
+* change the current mode
+* modes: FOLLOW CONFIG, WATER CHANGE, PH DOSING
 
+### schedule_jobs()
+* schedule light intervals
+* schedule fan intervals
+* schedule pump intervals
+* schedule data acquisition and image capture intervals
+* schedule sending data to aws
+* schedule sending images to aws
+### data_acquisition_job()
+* get sensor data
+* check for critical condition
+* if critical send for tracking
+* put the data in the Queue
+
+### get_camera_data()
+* get image data from camera
+### send_data_to_aws()
+* send data to AWS IoT
+### get_current_week()
+* get current week number

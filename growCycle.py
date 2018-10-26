@@ -11,7 +11,7 @@ class GrowCycle:
         cwd = os.getcwd()
         # check if file is present
         if path.isfile(cwd+"/config_files/plant.conf"):
-            parser.read('plant.Conf')
+            parser.read('/config_files/plant.Conf')
         self.growStartDate = parser.get('PlantInfo', 'plantingDate')
         self.estimatedHarvest = parser.get('PlantInfo', 'estimatedHarvest')
         self.growStartDate = self.strtoDate(self.growStartDate)
@@ -24,7 +24,6 @@ class GrowCycle:
         self.pumpOnInterval = None
         self.collectDataInterval = 2
         self.collectImageInterval = 2
-        self.AWS = AWSInterface()
         self.self.Actuator = self.ActuatorControl()
         self.states = State()
         self.Sensor = SensorData()
@@ -44,40 +43,44 @@ class GrowCycle:
         parser = ConfigParser()
         parser.read('plant.Conf')
         # get plant critical data
-        self.tempUL = int(parser.get('week'+str(currentWeek), 'tempUL'))
-        self.tempLL = int(parser.get('week'+str(currentWeek), 'tempLL'))
-        self.humidityUL = int(parser.get('week'+str(currentWeek),
+        self.tempUL = int(parser.get(currentWeek, 'tempUL'))
+        self.tempLL = int(parser.get(currentWeek, 'tempLL'))
+        self.humidityUL = int(parser.get(currentWeek,
                                          'humidityUL'))
-        self.humidityLL = int(parser.get('week'+str(currentWeek),
+        self.humidityLL = int(parser.get(currentWeek,
                                          'humidityLL'))
-        self.phUL = float(parser.get('week'+str(currentWeek), 'phUL'))
-        self.phLL = float(parser.get('week'+str(currentWeek), 'phLL'))
-        self.ecUL = float(parser.get('week'+str(currentWeek), 'ecUL'))
-        self.ecLL = float(parser.get('week'+str(currentWeek), 'ecLL'))
-        self.waterlevelUL = int(parser.get('week'+str(currentWeek),
+        self.phUL = float(parser.get(currentWeek, 'phUL'))
+        self.phLL = float(parser.get(currentWeek, 'phLL'))
+        self.ecUL = float(parser.get(currentWeek, 'ecUL'))
+        self.ecLL = float(parser.get(currentWeek, 'ecLL'))
+        self.waterlevelUL = int(parser.get(currentWeek,
                                            'waterlevelUL'))
-        self.waterlevelLL = int(parser.get('week'+str(currentWeek),
+        self.waterlevelLL = int(parser.get(currentWeek,
                                            'waterlevelLL'))
-        self.ledOnDuration = int(parser.get('week'+str(currentWeek),
+        self.ledOnDuration = int(parser.get(currentWeek,
                                             'ledOnDuration'))
-        self.ledOnInterval = int(parser.get('week'+str(currentWeek),
+        self.ledOnInterval = int(parser.get(currentWeek,
                                             'ledOnInterval'))
-        self.fanOnDuration = int(parser.get('week'+str(currentWeek),
+        self.fanOnDuration = int(parser.get(currentWeek,
                                             'fanOnDuration'))
-        self.fanOnInterval = int(parser.get('week'+str(currentWeek),
+        self.fanOnInterval = int(parser.get(currentWeek,
                                             'fanOnInterval'))
-        self.pumpOnDuration = int(parser.get('week'+str(currentWeek),
+        self.pumpOnDuration = int(parser.get(currentWeek,
                                              'pumpOnDuration'))
-        self.pumpOnInterval = int(parser.get('week'+str(currentWeek),
+        self.pumpOnInterval = int(parser.get(currentWeek,
                                              'pumpOnInterval'))
-        self.collectDataInterval = int(parser.get('week'+str(currentWeek),
+        self.collectDataInterval = int(parser.get(currentWeek,
                                                   'collectDataInterval'))
-        self.collectDataDuration = int(parser.get('week'+str(currentWeek),
+        self.collectDataDuration = int(parser.get(currentWeek,
                                                   'collectDataDuration'))
-        self.collectCameraInterval = int(parser.get('week'+str(currentWeek),
+        self.collectCameraInterval = int(parser.get(currentWeek,
                                                     'collectCameraInterval'))
-        self.collectCameraDuration = int(parser.get('week'+str(currentWeek),
+        self.collectCameraDuration = int(parser.get(currentWeek,
                                                     'collectCameraDuration'))
+        self.sendDataToAWSInterval = int(parser.get(currentWeek,
+                                                    'sendDataInterval'))
+        self.sendImagesToAWSInterval = int(parser.get(currentWeek,
+                                                      'sendImagesInterval'))
 
         schedule.clear()
         self.initialize_states()
@@ -98,12 +101,6 @@ class GrowCycle:
         self.states.waterlevelUL = self.waterlevelUL
         self.states.waterlevelLL = self.waterlevelLL
         return
-
-    def getCurrentWeek(self):
-        startdate = self.growStartDate
-        dayCount = datetime.date.today()-startdate
-        currentWeek = dayCount.days//7
-        return currentWeek
 
     def lightOn(self):
         self.Actuator.turnLightOn()
@@ -143,12 +140,6 @@ class GrowCycle:
         self.Actuator.turnPumpOff()
         self.states.Pump_Mix_status = False
         return schedule.CancelJob
-
-    def send_data_to_aws(self, data):
-        self.AWS.sendData(data)
-
-    # def sendCameraToIoT(self):
-    #     self.AWS.sendCameraData()
 
     def strtoDate(date):
         date = [int(x) for x in date.split('-')]

@@ -8,7 +8,8 @@ class State:
         self.Pump_Mix_status = False
         self.Pump_Pour_status = False
         self.frame_no = 0
-        self.Current_Mode = "FOLLOW CONFIG"
+        self.Current_Mode = None
+        self.activated = None
         self.critical_condition_tracker = False
         self.tempUL = 0.0
         self.tempLL = 0.0

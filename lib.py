@@ -14,3 +14,5 @@ from data_acquisition.SensorData import SensorData
 from AWS.awsInterface import AWSInterface
 from infrastructure.state import State
 from infrastructure.critical_condition import *
+import logging
+from data_acquisition.logger import *

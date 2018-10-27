@@ -122,3 +122,15 @@
 * send data to AWS IoT
 ### get_current_week()
 * get current week number
+
+#state.py
+* to track the states of actuators
+* states of current mode
+* states of tracker functions
+
+# critical_condition.py
+## check_critical_condition()
+* check critical condition for all the sensor data
+* input params: sensor data (dict)
+* return: cc_checklist (list - "OK","UP", "DOWN")
+## track_critical_condition()

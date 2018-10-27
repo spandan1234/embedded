@@ -35,6 +35,7 @@ class Main:
 
         while datetime.date.today() <= estimated_harvest:
 
+            self.states.activated = False
             # start weekly jobs
             while self.get_current_week() == current_week:
                 # check the current activated mode

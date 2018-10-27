@@ -74,4 +74,5 @@ def track_critical_condition(cc_checklist):
     :return: ret(boolean)
     """
 
+
     return

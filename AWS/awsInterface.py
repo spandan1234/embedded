@@ -1,10 +1,10 @@
-from lib import *
+from libraries.lib import *
 
 
 class AWSInterface():
 
     def __init__(self):
-        parser = SafeConfigParser()
+        parser = ConfigParser()
         parser.read('device.conf')
         self.host = parser.get('device', 'host')
         self.port = int(parser.get('device', 'port'))
@@ -17,7 +17,7 @@ class AWSInterface():
         self.growId = parser.get('grow', 'growId')
         parser.read('plant.conf')
         self.growStartDate = parser.get('PlantInfo', 'plantingDate')
-        self.growStartDate = strtoDate(self.growStartDate)
+        self.growStartDate = self.strtoDate(self.growStartDate)
         self.myAWSIoTMQTTClient = AWSIoTMQTTClient(self.clientId)
         self.myAWSIoTMQTTClient.configureEndpoint(self.host, self.port)
         self.myAWSIoTMQTTClient.configureCredentials(
@@ -60,3 +60,10 @@ class AWSInterface():
     def sendCameraData(self, data):
         response = requests.post("https://aws.savetos3_api", data=data)
         return response
+
+    def strtoDate(date):
+        ''':type date: str
+        :rtype: status: datetime.timedelta'''
+        date = [int(x) for x in date.split('-')]
+        formatted_date = datetime.date(date[0], date[1], date[2])
+        return formatted_date

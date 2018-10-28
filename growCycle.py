@@ -1,4 +1,4 @@
-from lib import *
+from libraries.lib import *
 from os import path
 import os
 

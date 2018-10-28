@@ -6,7 +6,7 @@ import uuid
 for i in range(10):
     device_id = "dev_"+(uuid.uuid4().hex)
     user_id = "usr_"+(uuid.uuid4().hex)
-    dev_list = open("E:/aeroasis/Embedded/device_list.txt", 'a')
+    dev_list = open("device_list.txt", 'a')
     dev_list.write(device_id)
     dev_list.write('\n')
     dev_list.close()
@@ -29,10 +29,10 @@ for i in range(10):
     priv = data['body']['privateKey']
     device_name = data['body']['thingName']
 
-    fn_c = open("E:/aeroasis/keys/"+device_name+"_cert.pem", 'x')
+    fn_c = open("keys/"+device_name+"_cert.pem", 'x')
     fn_c.write(cert)
     fn_c.close()
 
-    fn_p = open("E:/aeroasis/keys/"+device_name+"_private.key", 'x')
+    fn_p = open("keys/"+device_name+"_private.key", 'x')
     fn_p.write(priv)
     fn_p.close()

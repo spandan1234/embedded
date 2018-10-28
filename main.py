@@ -65,7 +65,7 @@ class Main:
                 schedule.run_pending()
                 time.sleep(1)
 
-            # self.grow_cycle.schedCurrentWeek(current_week)
+            current_week = self.get_current_week()
 
         return
 

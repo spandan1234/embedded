@@ -1,8 +1,8 @@
-import wiringpi as wpi
+import RPi.GPIO as GPIO
 import serial
 import json
 import datetime
-from logger import logger_variable
+from data_acquisition.logger import logger_variable
 
 
 class SensorData:
@@ -26,10 +26,9 @@ class SensorData:
         # open serial port
         self.serialOpen = serial.Serial('/dev/ttyACM0', 115200)
         # initialize wiringPi GPIO mode
-        wpi.wiringPiSetupGpio()
-        # set GPIO pins as output
-        wpi.pinMode(self.interrupt_pin, 1)
-        wpi.pinMode(26, 1)
+        GPIO.setmode(GPIO.BCM)
+
+        GPIO.setup(self.interrupt, GPIO.OUT, initial=1)
 
     def get_data(self):
         """
@@ -43,23 +42,13 @@ class SensorData:
         sensor_data = ""
         interrupt_pin = 25
         ack = False
-        request = ""
+        filter_sensor_data = {}
 
         # set interrupt -> True
         interrupt = True
 
         # send interrupt to Arduino
-        wpi.digitalWrite(interrupt_pin, interrupt)
-
-        # receive string "SEND REQ"
-        while request != "SEND REQ":
-            try:
-                request = self.receive_from_arduino()
-            except serial.ConnectionError:
-                print("Connection Error")
-
-        # Send a request for SENSOR DATA
-        self.send_to_arduino("SENSOR DATA")
+        GPIO.output(interrupt_pin, interrupt)
 
         # receive sensor data in a list
         while ack is False:
@@ -67,8 +56,6 @@ class SensorData:
                 sensor_data = self.receive_from_arduino()
             except ConnectionError:
                 print("Connection Error")
-
-            # Check the bytes of data received before other checks
 
             # filter the received information
             filter_sensor_data = self.filter_data(sensor_data)
@@ -88,7 +75,7 @@ class SensorData:
 
     # split the string data and return the dict
     @staticmethod
-    def filter_data(self, data):
+    def filter_data(data):
         # initialize a filter_data dictionary
         filtered_data = {}
 
@@ -117,7 +104,8 @@ class SensorData:
 
     # convert any dict to json
     @staticmethod
-    def convert_to_json(self, data):
+    def convert_to_json(data):
+        json_data = None
         if type(data) == dict:
             json_data = json.dumps(data)
         else:

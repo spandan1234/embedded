@@ -19,19 +19,27 @@ class ActuatorControl:
 
     def turnLightOn(self):
         light_state = 0x01
-        GPIO.output(self.light_out, light_state)
+        GPIO.output(self.led_out, light_state)
 
     def turnLightOff(self):
         light_state = 0x00
-        GPIO.output(self.light_out, light_state)
+        GPIO.output(self.led_out, light_state)
 
-    def turnMotorOn(self):
+    def turnPumpMixingOn(self):
         motor_state = 0x01
-        GPIO.output(self.motor_out, motor_state)
+        GPIO.output(self.pump_mixing_out, motor_state)
 
-    def turnMotorOff(self):
+    def turnPumpMixingOff(self):
         motor_state = 0x00
-        GPIO.output(self.motor_out, motor_state)
+        GPIO.output(self.pump_mixing_out, motor_state)
+
+    def turnPumpPourOn(self):
+        motor_state = 0x01
+        GPIO.output(self.pump_pour_out, motor_state)
+
+    def turnPumpPourOff(self):
+        motor_state = 0x00
+        GPIO.output(self.pump_pour_out, motor_state)
 
     def turnfanOn(self):
         fan_state = 0x01

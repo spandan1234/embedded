@@ -1,4 +1,12 @@
-from libraries.lib import *
+from actuator.actuatorControl import ActuatorControl
+from data_acquisition.CameraCapture import CameraCapture
+from data_acquisition.SensorData import SensorData
+from configparser import ConfigParser
+from infrastructure.state import State
+import datetime
+import schedule
+from data_acquisition.logger import *
+import time
 from os import path
 import os
 
@@ -10,8 +18,9 @@ class GrowCycle:
         # get current working directory
         cwd = os.getcwd()
         # check if file is present
-        if path.isfile(cwd+"/config_files/plant.conf"):
-            parser.read('/config_files/plant.Conf')
+        if path.isfile(cwd+"config_files/plant.conf"):
+            print("config file present")
+        parser.read('plant.conf')
         self.growStartDate = parser.get('PlantInfo', 'plantingDate')
         self.estimatedHarvest = parser.get('PlantInfo', 'estimatedHarvest')
         self.growStartDate = self.strtoDate(self.growStartDate)
@@ -24,10 +33,10 @@ class GrowCycle:
         self.pumpOnInterval = None
         self.collectDataInterval = 2
         self.collectImageInterval = 2
-        self.self.Actuator = self.ActuatorControl()
+        # self.self.Actuator = self.ActuatorControl()
         self.states = State()
-        self.Sensor = SensorData()
-        self.CameraCapture = CameraCapture()
+        # self.Sensor = SensorData()
+        # self.CameraCapture = CameraCapture()
 
     def startGrowCycle(self):
         currentWeek = self.getCurrentWeek()
@@ -41,7 +50,7 @@ class GrowCycle:
 
     def schedCurrentWeek(self, currentWeek):
         parser = ConfigParser()
-        parser.read('plant.Conf')
+        parser.read('plant.conf')
         # get plant critical data
         self.tempUL = int(parser.get(currentWeek, 'tempUL'))
         self.tempLL = int(parser.get(currentWeek, 'tempLL'))
@@ -57,14 +66,14 @@ class GrowCycle:
                                            'waterlevelUL'))
         self.waterlevelLL = int(parser.get(currentWeek,
                                            'waterlevelLL'))
-        self.ledOnDuration = int(parser.get(currentWeek,
-                                            'ledOnDuration'))
-        self.ledOnInterval = int(parser.get(currentWeek,
-                                            'ledOnInterval'))
-        self.fanOnDuration = int(parser.get(currentWeek,
-                                            'fanOnDuration'))
-        self.fanOnInterval = int(parser.get(currentWeek,
-                                            'fanOnInterval'))
+        self.ledOnDuration = float(parser.get(currentWeek,
+                                              'ledOnDuration'))
+        self.ledOnInterval = float(parser.get(currentWeek,
+                                              'ledOnInterval'))
+        self.fanOnDuration = float(parser.get(currentWeek,
+                                              'fanOnDuration'))
+        self.fanOnInterval = float(parser.get(currentWeek,
+                                              'fanOnInterval'))
         self.pumpOnDuration = int(parser.get(currentWeek,
                                              'pumpOnDuration'))
         self.pumpOnInterval = int(parser.get(currentWeek,
@@ -141,7 +150,7 @@ class GrowCycle:
         self.states.Pump_Mix_status = False
         return schedule.CancelJob
 
-    def strtoDate(date):
+    def strtoDate(self, date):
         date = [int(x) for x in date.split('-')]
         result = datetime.date(date[0], date[1], date[2])
         return result

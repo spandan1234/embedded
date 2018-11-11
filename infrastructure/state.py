@@ -1,4 +1,3 @@
-from lib.lib import *
 
 
 class State:

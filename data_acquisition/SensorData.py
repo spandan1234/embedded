@@ -21,6 +21,7 @@ class SensorData:
             serialOpen: Serial Port
         """
         # initialize logger_variable
+        self.interrupt = 19
         self.logger = logger_variable(__name__, 'SensorData.log')
 
         # open serial port
@@ -50,7 +51,7 @@ class SensorData:
         # send interrupt to Arduino
         GPIO.output(interrupt_pin, interrupt)
 
-        # receive sensor data in a list
+        # receive sensor data in a dict
         while ack is False:
             try:
                 sensor_data = self.receive_from_arduino()
@@ -111,3 +112,10 @@ class SensorData:
         else:
             print("Incorrect Data Format")
         return json_data
+
+
+if __name__ == '__main__':
+    sensor = SensorData()
+    while True:
+        data = sensor.get_data()
+        print (data)

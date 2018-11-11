@@ -14,8 +14,8 @@ class Main:
                 AWS_queue - queue containing info received from AWS
                 states - to track the current states of the actuator
         """
-        self.grow_cycle = GrowCycle()
         self.states = State()
+        self.grow_cycle = GrowCycle(self.states)
         self.sensor_data = SensorData()
         self.actuator = ActuatorControl()
         self.camera_capture = CameraCapture()
@@ -25,13 +25,17 @@ class Main:
         self.AWS_Queue = Queue()
         self.AWS = AWSInterface()
         # initialize logger_variable
-        self.logger = logger_variable(__name__, 'Log_files\\main.log')
+        f = open('Log_files/main.log', 'w')
+        f.close()
+        self.data_log = open('Log_files/data_collected.log', 'w')
+        self.logger = logger_variable(__name__, 'Log_files/main.log')
 
     def main_function(self):
         estimated_harvest = self.grow_cycle.estimatedHarvest
         current_week = self.get_current_week()
         self.states.Current_Mode = "FOLLOW CONFIG"
         self.states.activated = False
+        self.logger.debug('Grow Initiated')
 
         while datetime.date.today() <= estimated_harvest:
 
@@ -41,31 +45,40 @@ class Main:
                 # check the current activated mode
                 if self.states.Current_Mode == "FOLLOW CONFIG" and not self.states.activated:
                     self.grow_cycle.schedCurrentWeek(current_week)
+                    self.logger.debug('Config file scheduler created')
                     self.schedule_jobs()
                     self.states.activated = True
+                    self.logger.debug('Config file scheduler started')
 
                 elif self.states.Current_Mode == "WATER CHANGE" and not self.states.activated:
                     self.grow_cycle.schedCurrentWeek('water_change')
+                    self.logger.debug('Water Change scheduler created')
                     self.schedule_jobs()
                     self.states.activated = True
+                    self.logger.debug('Water Change scheduler started')
 
                 elif self.states.Current_Mode == "PH DOSING" and not self.states.activated:
                     self.grow_cycle.schedCurrentWeek('ph_dosing')
+                    self.logger.debug('Ph Dosing scheduler created')
                     self.schedule_jobs()
                     self.states.activated = True
+                    self.logger.debug('Ph Dosing scheduler started')
                 else:
                     self.logger.error('Wrong Mode of Operation')
+
 
                 # check user input from AWS
                 if not self.AWS_Queue.empty():
                     user_input = self.AWS_Queue.get()
                     self.check_user_input(user_input)
+                    self.logger.info('New input from User received')
 
                 # run scheduled jobs
                 schedule.run_pending()
                 time.sleep(1)
 
             current_week = self.get_current_week()
+            self.logger.info('New week starts')
 
         return
 
@@ -118,8 +131,10 @@ class Main:
             do(self.send_data_to_aws)
 
         # schedule sending images to aws S3
-        schedule.every(self.grow_cycle.sendImagesToAWSInterval).hour.\
-            do(self.send_camera_data)
+        # schedule.every(self.grow_cycle.sendImagesToAWSInterval).hour.\
+        #     do(self.send_camera_data)
+        schedule.every(self.grow_cycle.sendImagesToAWSInterval).hour. \
+            do(self.logger.debug, msg='Send Images to AWS')
 
         return
 
@@ -164,7 +179,6 @@ class Main:
         :return: no return
         """
         while not self.Image_Queue.empty():
-            # send images to AWS
             self.AWS.sendData(self.Image_Queue.get())
         return
 
@@ -174,7 +188,8 @@ class Main:
         :return:no return
         """
         while not self.Data_Queue.empty():
-            self.AWS.sendData(self.Data_Queue.get())
+            self.write_to_file(self.Data_Queue.get())
+            # self.AWS.sendData(self.Data_Queue.get())
         return
 
     def get_current_week(self):
@@ -184,9 +199,13 @@ class Main:
         """
         startdate = self.grow_cycle.growStartDate
         day_count = datetime.date.today() - startdate
-        week_number = day_count.days // 7
+        week_number = day_count.days / 7
         current_week = 'week'+str(week_number)
         return current_week
+
+    def write_to_file(self, message):
+        self.data_log.write(message)
+        self.data_log.write('\n')
 
 
 if __name__ == '__main__':

@@ -2,55 +2,52 @@ from actuator.actuatorControl import ActuatorControl
 from data_acquisition.CameraCapture import CameraCapture
 from data_acquisition.SensorData import SensorData
 from configparser import ConfigParser
-from infrastructure.state import State
 import datetime
 import schedule
-from data_acquisition.logger import *
-import time
 from os import path
 import os
 
 
 class GrowCycle:
 
-    def __init__(self):
-        parser = ConfigParser()
+    def __init__(self, states, logger):
+        self.parser = ConfigParser()
         # get current working directory
         cwd = os.getcwd()
         # check if file is present
-        if path.isfile(cwd+"config_files/plant.conf"):
+        if path.isfile("config_files/plant.conf"):
             print("config file present")
-        parser.read('plant.conf')
-        self.growStartDate = parser.get('PlantInfo', 'plantingDate')
-        self.estimatedHarvest = parser.get('PlantInfo', 'estimatedHarvest')
-        self.growStartDate = self.strtoDate(self.growStartDate)
-        self.estimatedHarvest = self.strtoDate(self.estimatedHarvest)
+        self.parser.read('plant.conf')
+        self.plantCycleDuration = self.parser.get('PlantInfo', 'plantCycle')
+        self.growStartDate = datetime.datetime.now()
+        self.estimatedHarvest = datetime.datetime.now() + datetime.timedelta(weeks=self.plantCycleDuration)
         self.ledOnDuration = None
         self.ledOnInterval = None
         self.fanOnDuration = None
         self.fanOnInterval = None
         self.pumpOnDuration = None
         self.pumpOnInterval = None
-        self.collectDataInterval = 2
-        self.collectImageInterval = 2
-        # self.self.Actuator = self.ActuatorControl()
-        self.states = State()
-        # self.Sensor = SensorData()
-        # self.CameraCapture = CameraCapture()
+        self.collectDataInterval = None
+        self.collectImageInterval = None
+        self.Actuator = ActuatorControl()
+        self.states = states
+        self.Sensor = SensorData()
+        self.CameraCapture = CameraCapture()
+        self.logger = logger
 
-    def startGrowCycle(self):
-        currentWeek = self.getCurrentWeek()
-
-        while(datetime.date.today() <= self.estimatedHarvest):
-            self.schedCurrentWeek(currentWeek)
-            while(self.getCurrentWeek() == currentWeek):
-                schedule.run_pending()
-                time.sleep(1)
-            currentWeek = self.getCurrentWeek()
+    # def startGrowCycle(self):
+    #     currentWeek = self.getCurrentWeek()
+    #
+    #     while(datetime.date.today() <= self.estimatedHarvest):
+    #         self.schedCurrentWeek(currentWeek)
+    #         while(self.getCurrentWeek() == currentWeek):
+    #             schedule.run_pending()
+    #             time.sleep(1)
+    #         currentWeek = self.getCurrentWeek()
 
     def schedCurrentWeek(self, currentWeek):
         parser = ConfigParser()
-        parser.read('plant.conf')
+        self.parser.read('plant.conf')
         # get plant critical data
         self.tempUL = int(parser.get(currentWeek, 'tempUL'))
         self.tempLL = int(parser.get(currentWeek, 'tempLL'))
@@ -86,15 +83,16 @@ class GrowCycle:
                                                     'collectCameraInterval'))
         self.collectCameraDuration = int(parser.get(currentWeek,
                                                     'collectCameraDuration'))
-        self.sendDataToAWSInterval = int(parser.get(currentWeek,
-                                                    'sendDataInterval'))
-        self.sendImagesToAWSInterval = int(parser.get(currentWeek,
-                                                      'sendImagesInterval'))
+        self.sendDataToAWSInterval = float(parser.get(currentWeek,
+                                                      'sendDataInterval'))
+        self.sendImagesToAWSInterval = float(parser.get(currentWeek,
+                                                        'sendImagesInterval'))
 
+        self.logger.debug('Weekly data from Config File collected')
         schedule.clear()
         self.initialize_states()
 
-    def initialize_states(self):
+    def initialize_states(self, states):
         """
         Initialize the global states with the plant.conf
         :return:No return
@@ -109,10 +107,13 @@ class GrowCycle:
         self.states.ecLL = self.ecLL
         self.states.waterlevelUL = self.waterlevelUL
         self.states.waterlevelLL = self.waterlevelLL
+
+        self.logger.debug('Critical Level states initialized')
         return
 
     def lightOn(self):
         self.Actuator.turnLightOn()
+        self.logger.debug('Led switched ON')
         self.states.LED_status = True
         lightOffTime = format(datetime.datetime.now() +
                               datetime.timedelta(hours=self.ledOnDuration),
@@ -121,11 +122,13 @@ class GrowCycle:
 
     def lightOff(self):
         self.Actuator.turnLightOff()
+        self.logger.debug('Led Switch Off')
         self.states.LED_status = False
         return schedule.CancelJob
 
     def fanOn(self):
         self.Actuator.turnFanOn()
+        self.logger.debug('Fan switched ON')
         self.states.FAN_status = True
         fanOffTime = format(datetime.datetime.now() +
                             datetime.timedelta(minutes=self.fanOnDuration),
@@ -134,11 +137,13 @@ class GrowCycle:
 
     def fanOff(self):
         self.Actuator.turnFanOff()
+        self.logger.debug('Fan switched Off')
         self.states.FAN_status = False
         return schedule.CancelJob
 
     def pumpOn(self):
-        self.Actuator.turnPumpOn()
+        self.Actuator.turnPumpMixingOn()
+        self.logger.debug('Mixing Pump switched ON')
         self.states.Pump_Mix_status = True
         pumpOffTime = format(datetime.datetime.now() +
                              datetime.timedelta(minutes=self.pumpOnDuration),
@@ -146,7 +151,8 @@ class GrowCycle:
         schedule.every().day.at(pumpOffTime).do(self.pumpOff)
 
     def pumpOff(self):
-        self.Actuator.turnPumpOff()
+        self.Actuator.turnPumpMixingOff()
+        self.logger.debug('Mixing Pump switched OFF')
         self.states.Pump_Mix_status = False
         return schedule.CancelJob
 

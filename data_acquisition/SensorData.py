@@ -28,7 +28,6 @@ class SensorData:
         self.serialOpen = serial.Serial('/dev/ttyACM0', 115200)
         # initialize wiringPi GPIO mode
         GPIO.setmode(GPIO.BCM)
-
         GPIO.setup(self.interrupt, GPIO.OUT, initial=1)
 
     def get_data(self):
@@ -118,4 +117,4 @@ if __name__ == '__main__':
     sensor = SensorData()
     while True:
         data = sensor.get_data()
-        print (data)
+        print(data)

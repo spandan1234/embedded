@@ -41,7 +41,7 @@ class ActuatorControl:
         motor_state = 0x00
         GPIO.output(self.pump_pour_out, motor_state)
 
-    def turnfanOn(self):
+    def turnFanOn(self):
         fan_state = 0x01
         GPIO.output(self.fan_out, fan_state)
 
